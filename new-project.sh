@@ -58,8 +58,11 @@ then
 	mysql -u root -e "CREATE DATABASE IF NOT EXISTS $projectName COLLATE  utf8mb4_general_ci"
 	# change database name in .env
 
-	sed -i "s/DB_DATABASE[^\"]*/DB_DATABASE=$projectName/" .env
+	
 	php artisan optimize:clear
+	sed -i "s/DB_DATABASE[^\"]*/DB_DATABASE=$projectName/" .env
+	sed -i "s/DB_USERNAME[^\"]*/DB_USERNAME=root/" .env
+	sed -i "s/DB_PASSWORD[^\"]*/DB_PASSWORD=/" .env
 	if [[ $shouldMigrate == "fm" ]]; then
 		php artisan migrate:fresh --seed
 	else 
@@ -94,7 +97,7 @@ fileConfigContent="server {\n
 
     location ~ \.php$ {\n
         include  fastcgi.conf;\n
-        fastcgi_pass unix:/var/run/php-fpm/www.sock;\n
+        fastcgi_pass unix:/var/run/php/php-fpm.sock;\n
         fastcgi_param SCRIPT_FILENAME "'$realpath_root$fastcgi_script_name'";\n
         #include fastcgi_params;\n
         
@@ -109,7 +112,7 @@ fileConfigContent="server {\n
 echo 'Set Configuration File'
 LocalConfigFile="$projectName.conf"
 HostsFile="127.0.0.1	$projectName.develop"
-echo -e $fileConfigContent > "$LocalConfigFile"
+echo $fileConfigContent > "$LocalConfigFile"
 
 sudo bash -c "mv $LocalConfigFile /etc/nginx/conf.d && echo $HostsFile >> /etc/hosts"
 
